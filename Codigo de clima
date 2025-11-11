@@ -1,0 +1,58 @@
+import time
+
+# Diccionario global para contar las llamadas de cada función
+llamadas_funciones = {}
+
+def auditar_funcion(func):
+    """Decorador que audita el uso de una función."""
+    def wrapper(*args, **kwargs):
+        # 1. Imprimir el nombre de la función que se está ejecutando.
+        print(f"Ejecutando función: {func.__name__}")
+
+        # 2. Contar cuantas veces ha sido llamada.
+        llamadas_funciones[func.__name__] = llamadas_funciones.get(func.__name__, 0) + 1
+        print(f"La función {func.__name__} ha sido llamada {llamadas_funciones[func.__name__]} veces.")
+        
+        # Opcional: muestre la duración de ejecución
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        duration = end_time - start_time
+        print(f"La función {func.__name__} tardó {duration:.4f} segundos en ejecutarse.")
+
+        return result
+    return wrapper
+
+# --- Funciones de ejemplo decoradas ---
+datos_temperaturas = [("CDMX", 26), ("Monterrey", 34), ("Toluca", 19), ("Cancun", 38), ("Guadalajara", 32), ("Tijuana", 24)]
+
+@auditar_funcion
+def obtener_alertas_ordenadas(datos):
+    altas_temps = list(filter(lambda item: item[1] >= 30, datos))
+    ordenadas = sorted(altas_temps, key=lambda item: item[1], reverse=True)
+    alertas_str = [f"Alerta de calor en {ciudad}: {temp}°C" for ciudad, temp in ordenadas]
+    return alertas_str
+
+@auditar_funcion
+def calcular_promedio_alertas(datos):
+    altas_temps = [temp for ciudad, temp in datos if temp >= 30]
+    if not altas_temps: return 0.0
+    promedio = sum(altas_temps) / len(altas_temps)
+    return promedio
+
+# --- Ejecución y salida esperada ---
+print("\n--- Ejecutando funciones ---")
+lista_alertas = obtener_alertas_ordenadas(datos_temperaturas)
+
+print("\n--- Resultado 1: Lista ordenada de alertas ---")
+for alerta in lista_alertas:
+    print(alerta)
+
+promedio = calcular_promedio_alertas(datos_temperaturas)
+
+print(f"\n--- Resultado 2: Temperatura promedio de alertas ---")
+print(f"**Temperatura promedio de alertas: {promedio:.1f}°C**")
+
+# Demostración del contador de llamadas
+print("\n--- Verificación del contador de llamadas ---")
+obtener_alertas_ordenadas(datos_temperaturas)
